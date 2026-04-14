@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スカウト同期</title>
+<style>
+  body { font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #1a1a2e; color: #fff; }
+  .container { text-align: center; padding: 2rem; }
+  #btn { font-size: 1.5rem; padding: 1rem 2.5rem; border: none; border-radius: 12px; background: #e94560; color: #fff; cursor: pointer; transition: all 0.3s; }
+  #btn:hover { background: #c73851; transform: scale(1.05); }
+  #btn:disabled { background: #555; cursor: not-allowed; }
+  #status { margin-top: 1.5rem; font-size: 1.1rem; }
+  .ok { color: #4ecca3; }
+  .err { color: #e94560; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔄 スカウト同期</h1>
+  <button id="btn" onclick="run()">▶ 実行</button>
+  <div id="status"></div>
+</div>
+<script>
+async function run() {
+  const btn = document.getElementById('btn');
+  const st = document.getElementById('status');
+  btn.disabled = true;
+  btn.textContent = '⏳ 実行中...';
+  st.textContent = '';
+  try {
+    const r = await fetch('https://api.github.com/repos/waniwani48/scout-automation/actions/workflows/sync.yml/dispatches', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + atob('Z2l0aHViX3BhdF8xMUNCV1RESllMMDZOYzFlVkJPNEdOTl9WaXQwVHVYSUtZWWVjUEZKTG02ZHhETTJyNGp4ZnV1VTlieXp3WXdZN29nRTVBVFk1TkFzMWpsWktpUA=='),
+        'Accept': 'application/vnd.github+json',
+      },
+      body: JSON.stringify({ref: 'main'}),
+    });
+    if (r.status === 204) {
+      st.innerHTML = '<span class="ok">✅ 同期を開始しました！<br>3〜5分で完了します。</span>';
+      btn.textContent = '✅ 完了';
+    } else {
+      st.innerHTML = '<span class="err">❌ エラー: ' + r.status + '</span>';
+      btn.textContent = '▶ 再実行';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    st.innerHTML = '<span class="err">❌ ' + e.message + '</span>';
+    btn.textContent = '▶ 再実行';
+    btn.disabled = false;
+  }
+}
+// Auto-run on page load (Notion link click = instant trigger)
+run();
+</script>
+</body>
+</html>
