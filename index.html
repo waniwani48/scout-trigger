@@ -4,149 +4,152 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scout Sync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,'Helvetica Neue',sans-serif;min-height:100vh;background:#0a0a1a;color:#fff;overflow:hidden}
-canvas{position:fixed;top:0;left:0;z-index:0;pointer-events:none}
-.wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
-.logo{font-size:2.5rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#6366f1,#ec4899,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
-.sub{color:#64748b;font-size:.85rem;margin-bottom:2rem;letter-spacing:.05em}
-#btn{font-size:1.1rem;padding:.9rem 2.5rem;border:none;border-radius:50px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;cursor:pointer;transition:all .4s;font-weight:600;box-shadow:0 4px 24px rgba(99,102,241,.4);position:relative;overflow:hidden}
-#btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.6)}
+:root{--bg:#09090b;--card:#18181b;--card2:#27272a;--border:#3f3f46;--text:#fafafa;--muted:#71717a;--accent:#a78bfa;--accent2:#818cf8;--green:#34d399;--red:#f87171}
+body{font-family:'Inter',system-ui,sans-serif;min-height:100vh;background:var(--bg);color:var(--text);overflow:hidden}
+canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+.wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
+
+.card{background:rgba(24,24,27,.8);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px}
+
+.header{text-align:center;margin-bottom:2rem}
+.header h1{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;color:var(--text)}
+.header p{font-size:.75rem;color:var(--muted);margin-top:.35rem;letter-spacing:.04em;text-transform:uppercase}
+
+#btn{width:100%;padding:.85rem;border:none;border-radius:12px;font-family:inherit;font-size:.9rem;font-weight:600;color:#fff;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
+background:linear-gradient(135deg,var(--accent2),var(--accent))}
+#btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
 #btn:active{transform:translateY(0)}
-#btn:disabled{background:#334155;box-shadow:none;cursor:default;transform:none}
-#btn .shimmer{position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shimmer 2s infinite}
-@keyframes shimmer{to{left:100%}}
-#status{margin-top:2rem;width:100%;max-width:360px;min-height:200px}
-.pct{font-size:3.5rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#4ecca3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;line-height:1}
-.bar-wrap{width:100%;height:6px;background:#1e293b;border-radius:3px;margin:1rem 0;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#4ecca3);transition:width .6s cubic-bezier(.4,0,.2,1);width:0%}
-.step-name{text-align:center;color:#94a3b8;font-size:.85rem;margin-bottom:1.5rem}
-.pf-list{display:flex;flex-direction:column;gap:.5rem}
-.pf{display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;background:#1e293b;border-radius:10px;font-size:.8rem;transition:all .4s}
-.pf.active{background:#1e3a5f;border:1px solid #3b82f6}
-.pf.done{background:#0f2922;border:1px solid #10b981}
-.pf-icon{width:8px;height:8px;border-radius:50%;background:#334155;flex-shrink:0;transition:all .4s}
-.pf.active .pf-icon{background:#3b82f6;box-shadow:0 0 8px #3b82f6;animation:pulse 1s infinite}
-.pf.done .pf-icon{background:#10b981;box-shadow:0 0 8px #10b981;animation:none}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.pf-name{flex:1;color:#94a3b8}.pf.active .pf-name{color:#93c5fd}.pf.done .pf-name{color:#6ee7b7}
-.pf-status{color:#475569;font-size:.75rem}.pf.active .pf-status{color:#60a5fa}.pf.done .pf-status{color:#34d399}
-.done-msg{text-align:center;margin-top:1.5rem;animation:fadeUp .6s ease}
-.done-msg h2{font-size:1.5rem;color:#4ecca3;margin-bottom:.5rem}
-.done-msg p{color:#64748b;font-size:.85rem}
-.done-msg a{color:#8b5cf6;text-decoration:none;font-weight:600}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.err{color:#f87171;text-align:center;margin-top:1rem}
+#btn:disabled{opacity:.4;cursor:default;transform:none;filter:none}
+#btn .pulse{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:sweep 2.5s ease infinite}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+#status{margin-top:1.75rem}
+
+.pct-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.5rem}
+.pct{font-size:2rem;font-weight:800;letter-spacing:-.03em;color:var(--text)}
+.pct-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.track{width:100%;height:4px;background:var(--card2);border-radius:2px;overflow:hidden}
+.fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent2),var(--accent),var(--green));transition:width .8s cubic-bezier(.4,0,.2,1)}
+.step-label{font-size:.75rem;color:var(--muted);margin-top:.5rem;margin-bottom:1.25rem}
+
+.pf-list{display:flex;flex-direction:column;gap:6px}
+.pf{display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;background:var(--card2);border-radius:10px;border:1px solid transparent;transition:all .4s}
+.pf.active{background:rgba(129,140,248,.08);border-color:rgba(129,140,248,.3)}
+.pf.done{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.2)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:all .4s}
+.pf.active .dot{background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 1.2s ease infinite}
+.pf.done .dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.pf-name{flex:1;font-size:.78rem;font-weight:500;color:var(--muted);transition:color .3s}
+.pf.active .pf-name{color:var(--accent)}
+.pf.done .pf-name{color:var(--green)}
+.pf-tag{font-size:.65rem;color:var(--border);font-weight:500;transition:color .3s}
+.pf.active .pf-tag{color:var(--accent2)}
+.pf.done .pf-tag{color:var(--green)}
+
+.done-card{text-align:center;padding:1.5rem 0 .5rem;animation:up .5s ease}
+.done-card h2{font-size:1.2rem;font-weight:700;color:var(--green);margin-bottom:.3rem}
+.done-card p{font-size:.8rem;color:var(--muted)}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.err-msg{text-align:center;color:var(--red);font-size:.85rem;margin-top:1rem}
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas>
 <div class="wrap">
-  <div class="logo">Scout Sync</div>
-  <div class="sub">REALITY / Palmu / IRIAM / Spoon / SHOWROOM</div>
-  <button id="btn" onclick="run()"><span class="shimmer"></span>Sync Now</button>
-  <div id="status"></div>
+  <div class="card">
+    <div class="header">
+      <h1>Scout Sync</h1>
+      <p>5 Platforms &middot; Auto Collection</p>
+    </div>
+    <button id="btn" onclick="run()"><span class="pulse"></span>Start Sync</button>
+    <div id="status"></div>
+  </div>
 </div>
 
 <script>
-// Particle background
-const c=document.getElementById('bg'),x=c.getContext('2d');
-let W,H,pts=[];
-function resize(){W=c.width=innerWidth;H=c.height=innerHeight;pts=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+.5,dx:(Math.random()-.5)*.3,dy:(Math.random()-.5)*.3,a:Math.random()*.5+.1}))}
-resize();addEventListener('resize',resize);
-function draw(){x.clearRect(0,0,W,H);for(const p of pts){p.x+=p.dx;p.y+=p.dy;if(p.x<0||p.x>W)p.dx*=-1;if(p.y<0||p.y>H)p.dy*=-1;x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(99,102,241,${p.a})`;x.fill()}
-for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(d<120){x.beginPath();x.moveTo(pts[i].x,pts[i].y);x.lineTo(pts[j].x,pts[j].y);x.strokeStyle=`rgba(99,102,241,${.08*(1-d/120)})`;x.stroke()}}
-requestAnimationFrame(draw)}
-draw();
+// Subtle grid particles
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');
+let W,H,dots=[];
+function sz(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+dots=Array.from({length:40},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.5+.5,a:Math.random()*.3+.05}))}
+sz();addEventListener('resize',sz);
+(function loop(){cx.clearRect(0,0,W,H);
+for(const d of dots){d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x>W)d.vx*=-1;if(d.y<0||d.y>H)d.vy*=-1;
+cx.beginPath();cx.arc(d.x,d.y,d.r,0,6.28);cx.fillStyle=`rgba(161,140,248,${d.a})`;cx.fill()}
+for(let i=0;i<dots.length;i++)for(let j=i+1;j<dots.length;j++){const dx=dots[i].x-dots[j].x,dy=dots[i].y-dots[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<100){cx.beginPath();cx.moveTo(dots[i].x,dots[i].y);cx.lineTo(dots[j].x,dots[j].y);cx.strokeStyle=`rgba(161,140,248,${.04*(1-dist/100)})`;cx.stroke()}}
+requestAnimationFrame(loop)})();
 
 // Auth
 const _a='Z2l0aHViX3BhdF8xMUNCV1RESlkwNk5jMWVWQk80';
 const _b='R05OX1ZpdDBUdVhJS1lZZWNQRkpMbTZkeERNMnI0';
 const _c='anhmdXVVOWJ5endZd1k3b2dFNUFUWTVOQXMxamxaS2lQ';
-function _t(){return atob(_a+_b+_c)}
+const TK=()=>atob(_a+_b+_c);
 const API='https://api.github.com/repos/waniwani48/scout-automation';
-const H2={'Authorization':'Bearer '+_t(),'Accept':'application/vnd.github+json'};
+const HD={'Authorization':'Bearer '+TK(),'Accept':'application/vnd.github+json'};
 
-const PFS=[
-  {id:'env',name:'Environment Setup',time:8},
-  {id:'reality',name:'REALITY',time:2},
-  {id:'palmu',name:'Palmu',time:15},
-  {id:'iriam',name:'IRIAM',time:3},
-  {id:'spoon',name:'Spoon',time:10},
-  {id:'showroom',name:'SHOWROOM',time:2},
-  {id:'notion',name:'Notion Sync',time:60},
-  {id:'archive',name:'Archive & Export',time:20},
+const PF=[
+  {name:'Setup',t:8},{name:'REALITY',t:2},{name:'Palmu',t:15},
+  {name:'IRIAM',t:3},{name:'Spoon',t:10},{name:'SHOWROOM',t:2},
+  {name:'Notion Sync',t:60},{name:'Archive',t:20},
 ];
+const TT=PF.reduce((s,p)=>s+p.t,0);
 
-function showProgress(pct,stepIdx){
-  const st=document.getElementById('status');
-  let pfHtml='';
-  PFS.forEach((p,i)=>{
-    const cls=i<stepIdx?'pf done':i===stepIdx?'pf active':'pf';
-    const stat=i<stepIdx?'Done':i===stepIdx?'Processing...':'Waiting';
-    pfHtml+=`<div class="${cls}"><div class="pf-icon"></div><div class="pf-name">${p.name}</div><div class="pf-status">${stat}</div></div>`;
+function render(pct,si){
+  let h='';
+  PF.forEach((p,i)=>{
+    const c=i<si?'pf done':i===si?'pf active':'pf';
+    const tag=i<si?'Done':i===si?'Running':'Queued';
+    h+=`<div class="${c}"><div class="dot"></div><div class="pf-name">${p.name}</div><div class="pf-tag">${tag}</div></div>`;
   });
-  st.innerHTML=`
-    <div class="pct">${pct}%</div>
-    <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
-    <div class="step-name">${stepIdx<PFS.length?PFS[stepIdx].name:'Finishing...'}</div>
-    <div class="pf-list">${pfHtml}</div>`;
+  document.getElementById('status').innerHTML=`
+    <div class="pct-row"><span class="pct">${pct}%</span><span class="pct-label">${si<PF.length?PF[si].name:'Finishing'}</span></div>
+    <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+    <div class="step-label">Step ${Math.min(si+1,PF.length)} of ${PF.length}</div>
+    <div class="pf-list">${h}</div>`;
 }
 
-function showDone(){
-  const st=document.getElementById('status');
-  st.innerHTML=`
-    <div class="pct">100%</div>
-    <div class="bar-wrap"><div class="bar-fill" style="width:100%"></div></div>
-    <div class="done-msg">
-      <h2>Sync Complete</h2>
-      <p>Notionを確認してください</p>
-    </div>`;
-  document.getElementById('btn').innerHTML='<span class="shimmer"></span>Done';
+function done(){
+  document.getElementById('status').innerHTML=`
+    <div class="pct-row"><span class="pct">100%</span><span class="pct-label">Complete</span></div>
+    <div class="track"><div class="fill" style="width:100%"></div></div>
+    <div class="done-card"><h2>Sync Complete</h2><p>Notion has been updated</p></div>`;
+  document.getElementById('btn').textContent='Done';
 }
 
-function showError(msg){
-  document.getElementById('status').innerHTML=`<div class="err">${msg}</div>`;
-  const btn=document.getElementById('btn');
-  btn.innerHTML='<span class="shimmer"></span>Retry';
-  btn.disabled=false;
+function err(m){
+  document.getElementById('status').innerHTML=`<div class="err-msg">${m}</div>`;
+  const b=document.getElementById('btn');b.innerHTML='<span class="pulse"></span>Retry';b.disabled=false;
 }
 
-async function pollStatus(runId){
-  let elapsed=0;
-  const totalTime=PFS.reduce((s,p)=>s+p.time,0);
-  const poll=setInterval(async()=>{
-    elapsed+=5;
-    let acc=0,stepIdx=0;
-    for(let i=0;i<PFS.length;i++){acc+=PFS[i].time;if(elapsed<acc){stepIdx=i;break}if(i===PFS.length-1)stepIdx=PFS.length-1;}
-    const pct=Math.min(95,Math.round(elapsed/totalTime*100));
-    showProgress(pct,stepIdx);
-    try{
-      const r=await fetch(`${API}/actions/runs/${runId}`,{headers:H2});
-      if(r.ok){const d=await r.json();if(d.status==='completed'){clearInterval(poll);d.conclusion==='success'?showDone():showError('Sync failed: '+d.conclusion)}}
-    }catch(e){}
+async function poll(rid){
+  let el=0;
+  const iv=setInterval(async()=>{
+    el+=5;let acc=0,si=0;
+    for(let i=0;i<PF.length;i++){acc+=PF[i].t;if(el<acc){si=i;break}if(i===PF.length-1)si=PF.length-1;}
+    render(Math.min(95,Math.round(el/TT*100)),si);
+    try{const r=await fetch(`${API}/actions/runs/${rid}`,{headers:HD});
+    if(r.ok){const d=await r.json();if(d.status==='completed'){clearInterval(iv);d.conclusion==='success'?done():err('Failed: '+d.conclusion)}}}catch(e){}
   },5000);
 }
 
 async function run(){
-  const btn=document.getElementById('btn');
-  btn.disabled=true;
-  btn.innerHTML='<span class="shimmer"></span>Starting...';
-  showProgress(0,0);
+  const b=document.getElementById('btn');b.disabled=true;b.innerHTML='<span class="pulse"></span>Starting...';
+  render(0,0);
   try{
-    const r=await fetch(`${API}/actions/workflows/sync.yml/dispatches`,{method:'POST',headers:H2,body:JSON.stringify({ref:'main'})});
-    if(r.status===204){
-      showProgress(3,0);
-      await new Promise(r=>setTimeout(r,5000));
-      try{
-        const runs=await fetch(`${API}/actions/runs?per_page=1&event=workflow_dispatch`,{headers:H2});
-        const d=await runs.json();
-        if(d.workflow_runs?.length>0)pollStatus(d.workflow_runs[0].id);
-        else showProgress(5,0);
-      }catch(e){showProgress(5,0)}
-    }else{showError('Error: '+r.status)}
-  }catch(e){showError(e.message)}
+    const r=await fetch(`${API}/actions/workflows/sync.yml/dispatches`,{method:'POST',headers:HD,body:JSON.stringify({ref:'main'})});
+    if(r.status===204){render(3,0);await new Promise(r=>setTimeout(r,5000));
+      try{const rs=await fetch(`${API}/actions/runs?per_page=1&event=workflow_dispatch`,{headers:HD});
+      const d=await rs.json();if(d.workflow_runs?.length)poll(d.workflow_runs[0].id);else render(5,0)}
+      catch(e){render(5,0)}}
+    else err('Error: '+r.status)
+  }catch(e){err(e.message)}
 }
 run();
 </script>
