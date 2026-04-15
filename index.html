@@ -6,13 +6,16 @@
 <title>スカウト同期</title>
 <style>
   body { font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #1a1a2e; color: #fff; }
-  .container { text-align: center; padding: 2rem; }
+  .container { text-align: center; padding: 2rem; max-width: 400px; }
   #btn { font-size: 1.5rem; padding: 1rem 2.5rem; border: none; border-radius: 12px; background: #e94560; color: #fff; cursor: pointer; transition: all 0.3s; }
   #btn:hover { background: #c73851; transform: scale(1.05); }
-  #btn:disabled { background: #555; cursor: not-allowed; }
-  #status { margin-top: 1.5rem; font-size: 1.1rem; }
+  #btn:disabled { background: #555; cursor: not-allowed; transform: none; }
+  #status { margin-top: 1.5rem; font-size: 1.1rem; min-height: 3rem; }
   .ok { color: #4ecca3; }
   .err { color: #e94560; }
+  .progress-bar { width: 100%; height: 8px; background: #333; border-radius: 4px; margin-top: 1rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #e94560, #4ecca3); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+  .step { font-size: 0.9rem; color: #aaa; margin-top: 0.5rem; }
 </style>
 </head>
 <body>
@@ -26,31 +29,99 @@ const _a='Z2l0aHViX3BhdF8xMUNCV1RESlkwNk5jMWVWQk80';
 const _b='R05OX1ZpdDBUdVhJS1lZZWNQRkpMbTZkeERNMnI0';
 const _c='anhmdXVVOWJ5endZd1k3b2dFNUFUWTVOQXMxamxaS2lQ';
 function _t(){return atob(_a+_b+_c)}
+const API='https://api.github.com/repos/waniwani48/scout-automation';
+const H={'Authorization':'Bearer '+_t(),'Accept':'application/vnd.github+json'};
+
+const STEPS=[
+  {name:'環境構築',pct:10},
+  {name:'REALITY取得中',pct:25},
+  {name:'Palmu取得中',pct:40},
+  {name:'IRIAM取得中',pct:55},
+  {name:'Spoon取得中',pct:65},
+  {name:'Notion同期中',pct:80},
+  {name:'アーカイブ処理',pct:90},
+  {name:'完了処理',pct:95},
+];
+
+function showProgress(pct, step) {
+  const st = document.getElementById('status');
+  st.innerHTML = `
+    <div style="font-size:2rem;font-weight:bold;color:#4ecca3">${pct}%</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="step">${step}</div>
+  `;
+}
+
+async function pollStatus(runId) {
+  let elapsed = 0;
+  const poll = setInterval(async () => {
+    elapsed += 5;
+    // 時間ベースで進捗を推定（平均3-4分）
+    const estimatedPct = Math.min(95, Math.round((elapsed / 210) * 100));
+    const stepIdx = STEPS.findIndex(s => s.pct > estimatedPct);
+    const step = stepIdx >= 0 ? STEPS[stepIdx].name : STEPS[STEPS.length-1].name;
+    showProgress(estimatedPct, step);
+
+    try {
+      // 実際のステータスも確認
+      const r = await fetch(`${API}/actions/runs/${runId}`, {headers: H});
+      if (r.ok) {
+        const data = await r.json();
+        if (data.status === 'completed') {
+          clearInterval(poll);
+          if (data.conclusion === 'success') {
+            showProgress(100, '');
+            const st = document.getElementById('status');
+            st.innerHTML = `
+              <div style="font-size:2rem;font-weight:bold;color:#4ecca3">100%</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+              <div class="ok" style="margin-top:1rem">✅ 同期完了！Notionを確認してください</div>
+            `;
+            document.getElementById('btn').textContent = '✅ 完了';
+          } else {
+            const st = document.getElementById('status');
+            st.innerHTML = `<span class="err">❌ 実行失敗: ${data.conclusion}</span>`;
+            document.getElementById('btn').textContent = '▶ 再実行';
+            document.getElementById('btn').disabled = false;
+          }
+        }
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
 async function run() {
   const btn = document.getElementById('btn');
-  const st = document.getElementById('status');
   btn.disabled = true;
   btn.textContent = '⏳ 実行中...';
-  st.textContent = '';
+  showProgress(0, '開始中...');
+
   try {
-    const r = await fetch('https://api.github.com/repos/waniwani48/scout-automation/actions/workflows/sync.yml/dispatches', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + _t(),
-        'Accept': 'application/vnd.github+json',
-      },
-      body: JSON.stringify({ref: 'main'}),
+    const r = await fetch(`${API}/actions/workflows/sync.yml/dispatches`, {
+      method: 'POST', headers: H, body: JSON.stringify({ref: 'main'}),
     });
     if (r.status === 204) {
-      st.innerHTML = '<span class="ok">✅ 同期を開始しました！<br>3〜5分で完了します。</span>';
-      btn.textContent = '✅ 完了';
+      showProgress(5, '実行キューに登録...');
+      // 少し待ってからrun IDを取得
+      await new Promise(r => setTimeout(r, 5000));
+      try {
+        const runs = await fetch(`${API}/actions/runs?per_page=1&event=workflow_dispatch`, {headers: H});
+        const data = await runs.json();
+        if (data.workflow_runs && data.workflow_runs.length > 0) {
+          pollStatus(data.workflow_runs[0].id);
+        } else {
+          showProgress(10, '実行中（進捗取得不可）');
+        }
+      } catch(e) {
+        showProgress(10, '実行中...');
+      }
     } else {
-      st.innerHTML = '<span class="err">❌ エラー: ' + r.status + '</span>';
+      document.getElementById('status').innerHTML = '<span class="err">❌ エラー: ' + r.status + '</span>';
       btn.textContent = '▶ 再実行';
       btn.disabled = false;
     }
   } catch(e) {
-    st.innerHTML = '<span class="err">❌ ' + e.message + '</span>';
+    document.getElementById('status').innerHTML = '<span class="err">❌ ' + e.message + '</span>';
     btn.textContent = '▶ 再実行';
     btn.disabled = false;
   }
