@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IRIAM配信を開く</title>
+<style>
+body{font-family:-apple-system,sans-serif;background:#18181b;color:#fafafa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:2rem}
+.box{text-align:center;max-width:360px}
+.btn{display:inline-block;padding:.9rem 2rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;margin:.5rem}
+.sub{color:#71717a;font-size:.8rem;margin-top:1rem}
+</style>
+</head>
+<body>
+<div class="box">
+  <h2 id="title">IRIAMを開いています...</h2>
+  <p class="sub">数秒たっても開かない場合は下のボタンから：</p>
+  <a id="app" class="btn" href="#">アプリで開く</a>
+  <a class="btn" href="https://apps.apple.com/jp/app/iriam/id1358057296">App Storeへ</a>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const uid = params.get('u');
+if (uid) {
+  const scheme = `iriam://p?applicationModel=live&luid=${uid}`;
+  document.getElementById('app').href = scheme;
+  // モバイルなら即リダイレクト
+  if (/Android|iPhone|iPod|iPad/i.test(navigator.userAgent)) {
+    location.href = scheme;
+  }
+} else {
+  document.getElementById('title').textContent = 'パラメータがありません';
+}
+</script>
+</body>
+</html>
