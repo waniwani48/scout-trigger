@@ -21,11 +21,18 @@ body{font-family:-apple-system,sans-serif;background:#18181b;color:#fafafa;displ
 <script>
 const params = new URLSearchParams(location.search);
 const uid = params.get('u');
-// mode=live を明示指定したときだけ配信ライブ画面、それ以外はプロフィール画面
-// （オフライン時に live モードだとアプリホームに飛ぶ場合があるため、デフォルトは user）
-const mode = params.get('mode') === 'live' ? 'live' : 'user';
+// mode=live で配信ライブ画面、それ以外はプロフィール画面（オフラインでも飛べる）
+// 注意: live と profile で URL スキーマのパラメータ名が違う:
+//   live    → applicationModel=live    & luid=...
+//   profile → applicationModel=profile & uid=...
+const mode = params.get('mode') === 'live' ? 'live' : 'profile';
 if (uid) {
-  const scheme = `iriam://p?applicationModel=${mode}&luid=${uid}`;
+  let scheme;
+  if (mode === 'live') {
+    scheme = `iriam://p?applicationModel=live&luid=${uid}`;
+  } else {
+    scheme = `iriam://p?applicationModel=profile&uid=${uid}`;
+  }
   document.getElementById('app').href = scheme;
   // モバイルなら即リダイレクト
   if (/Android|iPhone|iPod|iPad/i.test(navigator.userAgent)) {
